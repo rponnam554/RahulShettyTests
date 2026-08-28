@@ -24,7 +24,20 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                bat 'npx playwright test'
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'qa-credentials',
+                        usernameVariable: 'EMAIL',
+                        passwordVariable: 'PASSWORD'
+                    )
+                ]) {
+                    bat '''
+                        set TEST_ENV=qa
+                        set HEADLESS=true
+                        set TIMEOUT=30000
+                        npx playwright test
+                    '''
+                }
             }
         }
     }
