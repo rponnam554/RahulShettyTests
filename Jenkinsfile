@@ -33,6 +33,7 @@ pipeline {
                 ]) {
                     bat '''
                         set TEST_ENV=qa
+                        set QA_URL=https://rahulshettyacademy.com/client/
                         set HEADLESS=true
                         set TIMEOUT=30000
                         npx playwright test
