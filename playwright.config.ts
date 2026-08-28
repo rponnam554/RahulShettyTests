@@ -39,7 +39,10 @@ export default defineConfig({
 
         video: 'retain-on-failure',
 
-        headless: process.env.HEADLESS !== 'false',
+        headless: process.env.CI === 'true'
+            ? true
+            : false
+        
 
     },
 
@@ -49,7 +52,7 @@ export default defineConfig({
         {
             name: 'chromium',
             use: {
-                ...devices['Desktop Chrome'],headless:false,
+                ...devices['Desktop Chrome'],
             },
         }
 
