@@ -5,7 +5,7 @@ import { CheckoutPage } from '../pages/CheckoutPage'
 import { OrderConfirmationPage } from '../pages/OrderConfirmationPage'
 import { SoftAssert } from '../assertions/SoftAssert'
 import { Logger } from '../utils/Logger'
-test('Order one product', async ({ page, loginPage }) => {
+test.only('Order one product', async ({ page, loginPage }) => {
 
     const softAssert = new SoftAssert();
 
