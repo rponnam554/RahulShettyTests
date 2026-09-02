@@ -29,7 +29,7 @@ export class OrderConfirmationPage extends OrderConfirmationLocPage {
             await this.uiActions.click(this.ordersButton, 'Orders Button');
             const allOrderIDs = await this.orderList.allTextContents();
             Logger.debug(`Order IDs: ${JSON.stringify(allOrderIDs)}`);
-            expect(allOrderIDs).toContain(orderId);
+            await expect(allOrderIDs).toContain(orderId);
             const viewButton = this.page.locator(`//table[.//th[normalize-space()='Order Id']]//tr[th[normalize-space()='${orderId}']]//button[normalize-space()='View']`)
             await this.uiActions.click(viewButton, 'View Button');
             const newOrderId = this.page.locator(`//div[text()='${orderId}']`) 
