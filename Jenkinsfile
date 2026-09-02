@@ -185,7 +185,7 @@ ${env.BUILD_URL}
 Regards,
 Jenkins
 """,
-                to: 'qa-team@company.com'
+                to: 'raju.ponnam554@gmail.com'
             )
         }
 
