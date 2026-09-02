@@ -10,33 +10,55 @@ pipeline {
 
     stages {
 
+        // =========================================================
+        // 1. CLEAN WORKSPACE
+        // =========================================================
         stage('Clean Workspace') {
             steps {
                 cleanWs()
             }
         }
 
+        // =========================================================
+        // 2. CHECKOUT CODE
+        // =========================================================
         stage('Checkout') {
             steps {
-                git branch: 'main',
+                git(
+                    branch: 'main',
                     url: 'https://github.com/rponnam554/RahulShettyTests.git'
+                )
             }
         }
 
+        // =========================================================
+        // 3. INSTALL NODE DEPENDENCIES
+        // =========================================================
         stage('Install Dependencies') {
             steps {
                 bat 'npm ci'
             }
         }
 
+        // =========================================================
+        // 4. INSTALL PLAYWRIGHT BROWSERS
+        // =========================================================
         stage('Install Playwright Browsers') {
             steps {
                 bat 'npx playwright install'
             }
         }
 
+        // =========================================================
+        // 5. SMOKE TESTS
+        //
+        // If Smoke fails:
+        // Jenkins stops here.
+        // Regression and Web will NOT execute.
+        // =========================================================
         stage('Smoke Tests') {
             steps {
+
                 withCredentials([
                     usernamePassword(
                         credentialsId: 'qa-credentials',
@@ -44,13 +66,31 @@ pipeline {
                         passwordVariable: 'PASSWORD'
                     )
                 ]) {
-                    bat 'npm run smoke'
+
+                    bat '''
+                        echo ========================================
+                        echo Running Smoke Tests
+                        echo Environment: %TEST_ENV%
+                        echo Headless: %HEADLESS%
+                        echo ========================================
+
+                        npm run smoke
+                    '''
                 }
             }
         }
 
+        // =========================================================
+        // 6. REGRESSION TESTS
+        //
+        // Runs only if Smoke passes.
+        //
+        // If Regression fails:
+        // Web Tests will NOT execute.
+        // =========================================================
         stage('Regression Tests') {
             steps {
+
                 withCredentials([
                     usernamePassword(
                         credentialsId: 'qa-credentials',
@@ -58,13 +98,28 @@ pipeline {
                         passwordVariable: 'PASSWORD'
                     )
                 ]) {
-                    bat 'npm run regression'
+
+                    bat '''
+                        echo ========================================
+                        echo Running Regression Tests
+                        echo Environment: %TEST_ENV%
+                        echo Headless: %HEADLESS%
+                        echo ========================================
+
+                        npm run regression
+                    '''
                 }
             }
         }
 
+        // =========================================================
+        // 7. WEB TESTS
+        //
+        // Runs only if Smoke + Regression pass.
+        // =========================================================
         stage('Web Tests') {
             steps {
+
                 withCredentials([
                     usernamePassword(
                         credentialsId: 'qa-credentials',
@@ -72,17 +127,35 @@ pipeline {
                         passwordVariable: 'PASSWORD'
                     )
                 ]) {
-                    bat 'npm run web'
+
+                    bat '''
+                        echo ========================================
+                        echo Running Web Tests
+                        echo Environment: %TEST_ENV%
+                        echo Headless: %HEADLESS%
+                        echo ========================================
+
+                        npm run web
+                    '''
                 }
             }
         }
     }
 
+    // =============================================================
+    // POST ACTIONS
+    // =============================================================
     post {
 
-        // Runs regardless of SUCCESS / FAILURE / UNSTABLE
+        // ---------------------------------------------------------
+        // ALWAYS
+        // Runs whether SUCCESS / FAILURE / UNSTABLE
+        // ---------------------------------------------------------
         always {
-            echo 'Publishing test results...'
+
+            echo '========================================'
+            echo 'Publishing Playwright test results...'
+            echo '========================================'
 
             // Archive screenshots, videos and traces
             archiveArtifacts(
@@ -107,94 +180,153 @@ pipeline {
             ])
         }
 
-        // Runs only when pipeline succeeds
+        // ---------------------------------------------------------
+        // SUCCESS
+        // ---------------------------------------------------------
         success {
-            echo 'Automation passed successfully.'
+
+            echo '========================================'
+            echo 'Automation PASSED'
+            echo '========================================'
 
             emailext(
                 subject: "PASSED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+
                 body: """
 Hello Team,
 
 Playwright automation execution completed successfully.
+
+==============================
+BUILD DETAILS
+==============================
 
 Job         : ${env.JOB_NAME}
 Build       : #${env.BUILD_NUMBER}
 Environment : ${env.TEST_ENV}
 Status      : PASSED
 
-Build URL:
+==============================
+REPORT
+==============================
+
+Playwright HTML Report:
+${env.BUILD_URL}Playwright_20HTML_20Report/
+
+Jenkins Build:
 ${env.BUILD_URL}
 
 Regards,
 Jenkins
 """,
-                to: 'qa-team@company.com'
+
+                to: 'raju.ponnam554@gmail.com'
             )
         }
 
-        // Runs when pipeline fails
+        // ---------------------------------------------------------
+        // FAILURE
+        // ---------------------------------------------------------
         failure {
-            echo 'Automation failed.'
+
+            echo '========================================'
+            echo 'Automation FAILED'
+            echo '========================================'
 
             emailext(
                 subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+
                 body: """
 Hello Team,
 
 Playwright automation execution has FAILED.
+
+==============================
+BUILD DETAILS
+==============================
 
 Job         : ${env.JOB_NAME}
 Build       : #${env.BUILD_NUMBER}
 Environment : ${env.TEST_ENV}
 Status      : FAILED
 
-Please investigate the Jenkins build and Playwright report.
+==============================
+ACTION REQUIRED
+==============================
 
-Build URL:
+Please investigate the Jenkins build.
+
+Playwright HTML Report:
+${env.BUILD_URL}Playwright_20HTML_20Report/
+
+Jenkins Build:
 ${env.BUILD_URL}
+
+Screenshots, videos and traces are available in the build artifacts.
 
 Regards,
 Jenkins
 """,
+
                 to: 'raju.ponnam554@gmail.com'
             )
         }
 
-        // Runs if Jenkins marks the build as UNSTABLE
+        // ---------------------------------------------------------
+        // UNSTABLE
+        // ---------------------------------------------------------
         unstable {
-            echo 'Automation completed but the build is unstable.'
+
+            echo '========================================'
+            echo 'Automation UNSTABLE'
+            echo '========================================'
 
             emailext(
                 subject: "UNSTABLE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+
                 body: """
 Hello Team,
 
 Playwright automation completed with an UNSTABLE status.
+
+==============================
+BUILD DETAILS
+==============================
 
 Job         : ${env.JOB_NAME}
 Build       : #${env.BUILD_NUMBER}
 Environment : ${env.TEST_ENV}
 Status      : UNSTABLE
 
-Please check the Jenkins build and test report.
+Please check the Jenkins build and Playwright report.
 
-Build URL:
+Playwright HTML Report:
+${env.BUILD_URL}Playwright_20HTML_20Report/
+
+Jenkins Build:
 ${env.BUILD_URL}
 
 Regards,
 Jenkins
 """,
+
                 to: 'raju.ponnam554@gmail.com'
             )
         }
 
-        // Runs after all other post actions
+        // ---------------------------------------------------------
+        // CLEANUP
+        // ---------------------------------------------------------
         cleanup {
-            echo 'Cleaning temporary files...'
 
-            // Uncomment this if you want to delete the workspace
-            // after reports/artifacts have been archived and published.
+            echo '========================================'
+            echo 'Cleanup completed'
+            echo '========================================'
+
+            // Don't use cleanWs() here if you want to inspect
+            // files/artifacts directly from the workspace.
+            //
+            // Artifacts have already been archived above.
             //
             // cleanWs()
         }
