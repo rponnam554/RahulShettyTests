@@ -30,12 +30,15 @@ test('Order one product @web', async ({ page, loginPage }) => {
 test('test2 @smoke',async ({page})=>
 {
 await page.goto('https://www.cricbuzz.com/');
+await expect(page).toHaveTitle(/Cricbuzz1/);
 });
 test('test3 @regression',async ({page})=>
 {
 await page.goto('https://www.amazon.in/');
+await expect(page).toHaveTitle(/Amazon1/);
 });
 test('test4 @smoke',async ({page})=>
 {
 await page.goto('https://www.google.com/');
+await expect(page).toHaveTitle(/Google1/);
 });
