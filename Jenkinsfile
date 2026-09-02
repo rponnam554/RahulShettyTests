@@ -22,7 +22,7 @@ pipeline {
             }
         }
 
-        stage('Run Tests') {
+        stage('Smoke Tests') {
             steps {
                 withCredentials([
                     usernamePassword(
@@ -36,7 +36,47 @@ pipeline {
                         set QA_URL=https://rahulshettyacademy.com/client/
                         set HEADLESS=true
                         set TIMEOUT=30000
-                        npx playwright test
+                        npm run smoke
+                    '''
+                }
+            }
+        }
+
+        stage('Regression Tests') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'qa-credentials',
+                        usernameVariable: 'EMAIL',
+                        passwordVariable: 'PASSWORD'
+                    )
+                ]) {
+                    bat '''
+                        set TEST_ENV=qa
+                        set QA_URL=https://rahulshettyacademy.com/client/
+                        set HEADLESS=true
+                        set TIMEOUT=30000
+                        npm run regression
+                    '''
+                }
+            }
+        }
+
+        stage('Web Tests') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'qa-credentials',
+                        usernameVariable: 'EMAIL',
+                        passwordVariable: 'PASSWORD'
+                    )
+                ]) {
+                    bat '''
+                        set TEST_ENV=qa
+                        set QA_URL=https://rahulshettyacademy.com/client/
+                        set HEADLESS=true
+                        set TIMEOUT=30000
+                        npm run web
                     '''
                 }
             }

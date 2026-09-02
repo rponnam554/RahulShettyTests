@@ -4,10 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:ui": "playwright test --ui",
-    "test:debug": "playwright test --debug",
+    "smoke": "npx playwright test --grep @smoke",
+    "regression": "npx playwright test --grep @regression",
+    "web": "npx playwright test --grep @web",
     "cucumber": "tsx node_modules/@cucumber/cucumber/bin/cucumber-js"
   },
   "keywords": [],

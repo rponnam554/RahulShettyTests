@@ -5,7 +5,7 @@ import { CheckoutPage } from '../pages/CheckoutPage';
 import { OrderConfirmationPage } from '../pages/OrderConfirmationPage';
 import { SoftAssert } from '../assertions/SoftAssert';
 import { BasePage } from '../pages/BasePage';
-test('Verify order', async ({ page, loginPage }) => {
+test('Verify order @web', async ({ page, loginPage }) => {
     const softAssert = new SoftAssert();
     const dashboardPage = new DashboardPage(page);
     const cartPage = new CartPage(page, softAssert);
