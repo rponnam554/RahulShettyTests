@@ -21,9 +21,12 @@ export default defineConfig({
     workers: process.env.CI ? 1 : undefined,
 
     reporter: [
-        ['html'],
-        ['list']
-    ],
+    ['list'],
+    ['html', {
+        outputFolder: 'playwright-report',
+        open: 'never'
+    }]
+],
     globalSetup: require.resolve('./globalSetup'),
 
     globalTeardown: require.resolve('./globalTeardown'),
